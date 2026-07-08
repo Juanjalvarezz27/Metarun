@@ -59,6 +59,7 @@ export const Header = () => {
               src="/logo.jpg" 
               alt="Meta Run Logo" 
               fill
+              sizes="(max-width: 768px) 96px, 112px"
               className="object-cover"
               priority
             />

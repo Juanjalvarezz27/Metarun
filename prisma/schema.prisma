@@ -6,3 +6,20 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
 }
+
+model Inscripcion {
+  id              String   @id @default(cuid())
+  nombreCompleto  String
+  cedula          String   @unique
+  correo          String
+  genero          String
+  fechaNacimiento String
+  telefono        String
+  modalidad       String
+  club            String?
+  referenciaPago  String
+  bancoEmisor     String
+  telefonoPago    String
+  captureUrl      String
+  fechaRegistro   DateTime @default(now())
+}

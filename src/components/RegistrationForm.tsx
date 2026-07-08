@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { Upload, Map, Gift, Package, CheckCircle2, Lock } from 'lucide-react';
 import { Input } from './ui/Input';
@@ -14,6 +14,7 @@ export const RegistrationForm = () => {
   const [formData, setFormData] = useState({
     nombreCompleto: '',
     cedula: '',
+    correo: '',
     genero: '',
     fechaNacimiento: '',
     telefono: '',
@@ -21,13 +22,30 @@ export const RegistrationForm = () => {
     club: '',
     referenciaPago: '',
     bancoEmisor: '',
+    otroBancoEmisor: '',
     telefonoPago: '',
     aceptaTerminos: false,
   });
 
   const [captureFile, setCaptureFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tasaBcv, setTasaBcv] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchTasa = async () => {
+      try {
+        const res = await fetch('/api/bcv');
+        const data = await res.json();
+        if (data.tasa) {
+          setTasaBcv(data.tasa);
+        }
+      } catch (error) {
+        console.error('Error cargando tasa:', error);
+      }
+    };
+    fetchTasa();
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -42,9 +60,21 @@ export const RegistrationForm = () => {
   };
 
   const uploadToImgBB = async (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve('https://i.ibb.co/placeholder/capture.png'), 1500);
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    const API_KEY = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${API_KEY}`, {
+      method: 'POST',
+      body: formData,
     });
+    
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error?.message || 'Error al subir el capture al servidor de imágenes');
+    }
+    
+    return data.data.url;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,22 +91,40 @@ export const RegistrationForm = () => {
     setIsSubmitting(true);
     try {
       const captureUrl = await uploadToImgBB(captureFile);
-      const finalPayload = { ...formData, captureUrl };
+      
+      const bancoFinal = formData.bancoEmisor === 'otro' ? formData.otroBancoEmisor : formData.bancoEmisor;
+      const { otroBancoEmisor, ...restFormData } = formData;
+      
+      const finalPayload = { ...restFormData, bancoEmisor: bancoFinal, captureUrl };
       
       console.log('Datos listos para la BD:', finalPayload);
-      await new Promise(r => setTimeout(r, 1000));
+      
+      const response = await fetch('/api/inscripciones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalPayload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ocurrió un error al registrar.');
+      }
+      
+      // TODO: Lanzar el envío del correo de confirmación aquí
+      
       toast.success('¡Inscripción completada con éxito!');
       
       setFormData({
-        nombreCompleto: '', cedula: '', genero: '', fechaNacimiento: '',
+        nombreCompleto: '', cedula: '', correo: '', genero: '', fechaNacimiento: '',
         telefono: '', modalidad: '', club: '', referenciaPago: '',
-        bancoEmisor: '', telefonoPago: '', aceptaTerminos: false,
+        bancoEmisor: '', otroBancoEmisor: '', telefonoPago: '', aceptaTerminos: false,
       });
       setCaptureFile(null);
       if(fileInputRef.current) fileInputRef.current.value = '';
 
-    } catch (error) {
-      toast.error('Hubo un error al procesar tu inscripción');
+    } catch (error: any) {
+      toast.error(error.message || 'Hubo un error al procesar tu inscripción');
     } finally {
       setIsSubmitting(false);
     }
@@ -100,18 +148,18 @@ export const RegistrationForm = () => {
   }
 
   // Estilos compartidos para las tarjetas de sección
-  const sectionCardClass = "bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 relative overflow-hidden";
-  const sectionNumberClass = "w-10 h-10 rounded-2xl bg-[#ea4a22]/10 flex items-center justify-center text-[#ea4a22] shadow-inner";
+  const sectionCardClass = "bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 relative";
+  const sectionNumberClass = "w-10 h-10 rounded-2xl bg-[#ea4a22]/10 flex items-center justify-center text-[#ea4a22] shadow-inner font-black text-lg";
 
   return (
     <div className="w-full mx-auto pb-12 relative z-10">
       <form onSubmit={handleSubmit} className="space-y-8">
-        
+
         {/* SECCION 1: Datos Personales */}
         <section className={sectionCardClass}>
           <div className="flex items-center gap-4 mb-8">
             <div className={sectionNumberClass}>
-              <span className="font-extrabold text-lg">1</span>
+              <span>1</span>
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Datos Personales</h2>
           </div>
@@ -132,6 +180,15 @@ export const RegistrationForm = () => {
               value={formData.cedula} 
               onChange={handleInputChange} 
               placeholder="V-12345678" 
+              required 
+            />
+            <Input 
+              label="Correo Electrónico" 
+              name="correo" 
+              type="email"
+              value={formData.correo} 
+              onChange={handleInputChange} 
+              placeholder="ejemplo@correo.com" 
               required 
             />
             <Select 
@@ -169,7 +226,7 @@ export const RegistrationForm = () => {
         <section className={sectionCardClass}>
           <div className="flex items-center gap-4 mb-8">
             <div className={sectionNumberClass}>
-              <span className="font-extrabold text-lg">2</span>
+              <span>2</span>
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Detalles de la Carrera</h2>
           </div>
@@ -215,7 +272,7 @@ export const RegistrationForm = () => {
         <section className={sectionCardClass}>
           <div className="flex items-center gap-4 mb-8">
             <div className={sectionNumberClass}>
-              <span className="font-extrabold text-lg">3</span>
+              <span>3</span>
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Verificación de Pago</h2>
           </div>
@@ -230,7 +287,13 @@ export const RegistrationForm = () => {
               <div className="flex flex-col"><span className="opacity-70 text-xs font-semibold uppercase tracking-wider mb-1">Banco</span><span className="font-medium">Banesco (0134)</span></div>
               <div className="flex flex-col"><span className="opacity-70 text-xs font-semibold uppercase tracking-wider mb-1">Teléfono</span><span className="font-medium">0414-1234567</span></div>
               <div className="flex flex-col"><span className="opacity-70 text-xs font-semibold uppercase tracking-wider mb-1">Cédula</span><span className="font-medium">V-12345678</span></div>
-              <div className="flex flex-col"><span className="opacity-70 text-xs font-semibold uppercase tracking-wider mb-1">Monto</span><span className="font-extrabold text-xl tracking-tight">$15</span></div>
+              <div className="flex flex-col">
+                <span className="opacity-70 text-xs font-semibold uppercase tracking-wider mb-1">Monto a pagar</span>
+                <span className="font-extrabold text-xl tracking-tight">
+                  $3 {tasaBcv ? `- Bs. ${(3 * tasaBcv).toFixed(2)}` : ''}
+                </span>
+                {tasaBcv && <span className="text-[10px] mt-0.5 opacity-70">Calculado a tasa BCV: Bs. {tasaBcv}</span>}
+              </div>
             </div>
           </div>
 
@@ -257,6 +320,16 @@ export const RegistrationForm = () => {
               ]} 
               required 
             />
+            {formData.bancoEmisor === 'otro' && (
+              <Input 
+                label="Especifique su Banco" 
+                name="otroBancoEmisor" 
+                value={formData.otroBancoEmisor} 
+                onChange={handleInputChange} 
+                placeholder="Ej. Bancamiga" 
+                required 
+              />
+            )}
             <Input 
               label="Teléfono del Pago" 
               name="telefonoPago" 
