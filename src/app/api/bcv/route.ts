@@ -4,22 +4,26 @@ export const revalidate = 3600; // Refrescar la caché cada 1 hora
 
 export async function GET() {
   try {
+    // Usamos DolarAPI (Oficial)
+    // cache: 'no-store' asegura que siempre vaya a buscar el último precio y no se quede pegado en días anteriores
     const res = await fetch('https://ve.dolarapi.com/v1/dolares/oficial', {
-      next: { revalidate: 3600 } // ISR Cache por 1 hora para no saturar
+      cache: 'no-store'
     });
     
     if (!res.ok) {
-      throw new Error('Error al obtener la tasa');
+      throw new Error(`Error HTTP: ${res.status}`);
     }
     
     const data = await res.json();
+    
     return NextResponse.json({
-      tasa: data.promedio || data.venta, // La API suele devolver el valor en 'promedio' o 'venta'
+      tasa: data.promedio || data.venta,
       fecha: data.fechaActualizacion
     });
   } catch (error) {
-    console.error('Error BCV:', error);
-    // Tasa de fallback por seguridad si falla la API
-    return NextResponse.json({ tasa: 36.50, fallback: true }, { status: 500 });
+    console.error('Error al contactar DolarAPI:', error);
+    return NextResponse.json({ 
+      error: 'No se pudo conectar al banco central' 
+    }, { status: 500 });
   }
 }

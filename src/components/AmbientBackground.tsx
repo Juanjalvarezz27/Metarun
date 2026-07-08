@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface Light {
   size: number;
@@ -15,25 +15,25 @@ interface Light {
 
 export const AmbientBackground = () => {
   const [lights, setLights] = useState<Light[]>([]);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    // Generamos las luces en el cliente para evitar problemas de hidratación en Next.js
+    // Guard: solo generamos las luces una vez
+    if (initialized.current) return;
+    initialized.current = true;
+
     const isMobile = window.innerWidth < 768;
     
-    const generatedLights = Array.from({ length: 30 }).map(() => {
-      // En móviles (pantallas angostas), el valor "vw" (viewport width) es muy pequeño en píxeles.
-      // Por lo tanto, si es móvil usamos valores vw mucho más altos (40 a 80vw)
-      // Si es desktop usamos valores normales (8 a 28vw)
+    const generatedLights = Array.from({ length: 12 }).map(() => {
       const baseSize = isMobile ? 40 : 8;
       const rangeSize = isMobile ? 40 : 20;
       const size = Math.random() * rangeSize + baseSize; 
       
       const top = Math.random() * 100;
       const left = Math.random() * 100;
-      const duration = Math.random() * 20 + 10; // Entre 10s y 30s
+      const duration = Math.random() * 20 + 10;
       const delay = Math.random() * -30;
       
-      // En móviles hacemos que se muevan distancias más largas para compensar la pantalla vertical
       const moveRange = isMobile ? 60 : 30;
       const tx = (Math.random() - 0.5) * moveRange; 
       const ty = (Math.random() - 0.5) * moveRange;

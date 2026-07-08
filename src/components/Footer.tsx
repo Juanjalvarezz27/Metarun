@@ -3,9 +3,9 @@ import Image from 'next/image';
 
 export const Footer = () => {
   return (
-    <footer className="w-full mt-4 md:mt-8 relative z-20">
-      <div className="max-w-4xl mx-auto px-4 pb-12">
-        <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8">
+    <footer className="w-full relative z-20 py-4 mt-2">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8">
           
           <div className="flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
             <div className="w-16 h-16 relative rounded-[1.25rem] overflow-hidden shadow-xl shadow-gray-200 border-4 border-white flex-shrink-0">

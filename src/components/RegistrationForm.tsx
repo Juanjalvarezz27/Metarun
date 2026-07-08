@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { toast } from 'react-toastify';
 import { Upload, Map, Gift, Package, CheckCircle2, Lock } from 'lucide-react';
 import { Input } from './ui/Input';
@@ -10,6 +11,8 @@ import { Button } from './ui/Button';
 export const RegistrationForm = () => {
   // Estado para simular cerrar inscripciones (el admin podrá controlarlo después)
   const [isRegistrationOpen, setIsRegistrationOpen] = useState(true);
+  // Estado para mostrar la pantalla de éxito
+  const [isSuccess, setIsSuccess] = useState(false);
   
   const [formData, setFormData] = useState({
     nombreCompleto: '',
@@ -48,7 +51,16 @@ export const RegistrationForm = () => {
   }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    let { name, value, type } = e.target;
+
+    // Validación estricta en tiempo real (Si es número es número, si es texto es texto)
+    if (name === 'cedula' || name === 'telefono' || name === 'telefonoPago' || name === 'referenciaPago') {
+      value = value.replace(/[^0-9]/g, ''); // Solo permite números
+    }
+    if (name === 'nombreCompleto') {
+      value = value.replace(/[^a-zA-ZÀ-ÿ\s]/g, ''); // Solo permite letras y espacios
+    }
+
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setFormData((prev) => ({ ...prev, [name]: val }));
   };
@@ -113,8 +125,6 @@ export const RegistrationForm = () => {
       
       // TODO: Lanzar el envío del correo de confirmación aquí
       
-      toast.success('¡Inscripción completada con éxito!');
-      
       setFormData({
         nombreCompleto: '', cedula: '', correo: '', genero: '', fechaNacimiento: '',
         telefono: '', modalidad: '', club: '', referenciaPago: '',
@@ -122,6 +132,10 @@ export const RegistrationForm = () => {
       });
       setCaptureFile(null);
       if(fileInputRef.current) fileInputRef.current.value = '';
+      
+      // Activar pantalla de éxito
+      setIsSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (error: any) {
       toast.error(error.message || 'Hubo un error al procesar tu inscripción');
@@ -143,6 +157,47 @@ export const RegistrationForm = () => {
         <Button variant="outline" className="mt-8 mx-auto" onClick={() => setIsRegistrationOpen(true)}>
           (Admin) Abrir Inscripciones
         </Button>
+      </div>
+    );
+  }
+
+  if (isSuccess) {
+    return (
+      <div className="w-full mx-auto pb-12 relative z-10 flex flex-col items-center justify-center animate-fade-in-up mt-8">
+        <div className="bg-white rounded-[3rem] p-10 md:p-16 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-gray-100 text-center max-w-2xl w-full relative overflow-hidden flex flex-col items-center">
+          
+          <div className="mb-10 relative inline-block mx-auto">
+            <Image 
+              src="/logo.jpg" 
+              alt="MetaRun Logo" 
+              width={160} 
+              height={160} 
+              className="w-32 h-32 md:w-40 md:h-40 object-cover rounded-full shadow-lg border-4 border-white ring-4 ring-[#ea4a22]/10"
+              priority
+            />
+            {/* Insignia de Confirmación (Badge Verificado) */}
+            <div className="absolute bottom-0 right-0 md:bottom-1 md:right-1 w-10 h-10 md:w-12 md:h-12 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg border-4 border-white transform hover:scale-110 transition-transform">
+              <CheckCircle2 size={24} strokeWidth={3} />
+            </div>
+          </div>
+          
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-5 tracking-tighter">
+            ¡Nos Vemos en la Meta!
+          </h2>
+          <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-md mx-auto mb-10 text-center">
+            Tu inscripción ha sido recibida con éxito. Nuestro equipo validará tu pago y pronto recibirás un correo de confirmación.
+          </p>
+          
+          <Button 
+            className="w-full sm:w-auto px-12 mx-auto" 
+            onClick={() => {
+              setIsSuccess(false);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            Inscribir a otra persona
+          </Button>
+        </div>
       </div>
     );
   }
@@ -179,7 +234,8 @@ export const RegistrationForm = () => {
               name="cedula" 
               value={formData.cedula} 
               onChange={handleInputChange} 
-              placeholder="V-12345678" 
+              placeholder="Ej. 12345678 (Solo números)" 
+              inputMode="numeric"
               required 
             />
             <Input 
@@ -206,6 +262,8 @@ export const RegistrationForm = () => {
               label="Fecha de Nacimiento" 
               name="fechaNacimiento" 
               type="date" 
+              min="1900-01-01"
+              max="2026-12-31"
               value={formData.fechaNacimiento} 
               onChange={handleInputChange} 
               required 
