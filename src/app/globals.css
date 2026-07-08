@@ -1,1 +1,79 @@
 @import "tailwindcss";
+
+/* === Animaciones de Fondo Premium (Luces Naranjas) === */
+
+.bg-animated-mesh-v3 {
+  /* Fondo base beige según lo solicitado */
+  background: linear-gradient(-45deg, #fff3e8, #fdf0e3, #fae9d9, #fff1e5);
+  background-color: #fbecdc;
+  background-size: 300% 300%;
+  position: relative;
+  overflow: hidden; /* Importante para que las luces no generen scroll horizontal */
+  animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* === Luces Naranjas Aleatorias (Glowing Orbs - CERO LAG) === */
+@keyframes float-particle {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  100% { transform: translate3d(var(--tx), var(--ty), 0) scale(1.2); }
+}
+
+
+
+.pattern-mesh-v3 {
+  /* Patrón de puntos naranjas sutiles sobre el fondo claro */
+  background-image: radial-gradient(rgba(234, 74, 34, 0.15) 2px, transparent 2px);
+  background-size: 32px 32px;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* === Animaciones del Header === */
+@keyframes float-logo {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float-logo {
+  animation: float-logo 4s ease-in-out infinite;
+}
+
+@keyframes slide-up-fade {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up-1 {
+  animation: slide-up-fade 0.8s ease-out forwards;
+}
+.animate-slide-up-2 {
+  animation: slide-up-fade 0.8s ease-out 0.2s forwards;
+  opacity: 0;
+}
+.animate-slide-up-3 {
+  animation: slide-up-fade 0.8s ease-out 0.4s forwards;
+  opacity: 0;
+}
+
+@keyframes slide-diagonal-pattern {
+  0% { background-position: 0 0; }
+  100% { background-position: 48px 48px; }
+}
+
+.animate-pattern-slide {
+  animation: slide-diagonal-pattern 20s linear infinite;
+}
+
+@keyframes wave-move {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
