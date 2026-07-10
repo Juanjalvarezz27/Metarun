@@ -60,6 +60,20 @@ export const RegistrationForm = () => {
     if (name === 'nombreCompleto') {
       value = value.replace(/[^a-zA-ZÀ-ÿ\s]/g, ''); // Solo permite letras y espacios
     }
+    
+    // Máscara para la fecha de nacimiento (DD/MM/AAAA)
+    if (name === 'fechaNacimiento') {
+      // Elimina cualquier caracter que no sea número
+      let v = value.replace(/\D/g, '');
+      
+      // Auto-inserta las barras (/)
+      if (v.length >= 3 && v.length <= 4) {
+        v = `${v.slice(0, 2)}/${v.slice(2)}`;
+      } else if (v.length >= 5) {
+        v = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4, 8)}`;
+      }
+      value = v;
+    }
 
     const val = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
     setFormData((prev) => ({ ...prev, [name]: val }));
@@ -67,7 +81,16 @@ export const RegistrationForm = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setCaptureFile(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      // Validación estricta: Solo permitir imágenes
+      if (!file.type.startsWith('image/')) {
+        toast.error('Por favor, sube solo imágenes (JPG, PNG). Los PDF no están permitidos.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      
+      setCaptureFile(file);
     }
   };
 
@@ -185,7 +208,7 @@ export const RegistrationForm = () => {
             ¡Nos Vemos en la Meta!
           </h2>
           <p className="text-gray-500 font-medium text-lg leading-relaxed max-w-md mx-auto mb-10 text-center">
-            Tu inscripción ha sido recibida con éxito. Nuestro equipo validará tu pago y pronto recibirás un correo de confirmación.
+            Tu inscripción ha sido recibida con éxito. Revisa tu bandeja de entrada (o carpeta de spam), te hemos enviado un correo de confirmación oficial.
           </p>
           
           <Button 
@@ -261,11 +284,10 @@ export const RegistrationForm = () => {
             <Input 
               label="Fecha de Nacimiento" 
               name="fechaNacimiento" 
-              type="date" 
-              min="1900-01-01"
-              max="2026-12-31"
+              type="text" 
               value={formData.fechaNacimiento} 
               onChange={handleInputChange} 
+              placeholder="DD/MM/AAAA"
               required 
             />
             <Input 
@@ -420,7 +442,7 @@ export const RegistrationForm = () => {
                     <Upload className="text-[#ea4a22]" size={24} strokeWidth={2} />
                   </div>
                   <span className="text-[15px] font-medium text-gray-800">Sube tu capture aquí</span>
-                  <span className="text-xs text-gray-400 mt-1.5 font-medium uppercase tracking-wider">JPG, PNG o PDF</span>
+                  <span className="text-xs text-gray-400 mt-1.5 font-medium uppercase tracking-wider">Solo JPG o PNG</span>
                 </>
               )}
             </div>
@@ -428,7 +450,7 @@ export const RegistrationForm = () => {
               type="file" 
               ref={fileInputRef} 
               onChange={handleFileChange} 
-              accept="image/*,.pdf" 
+              accept="image/*" 
               className="hidden" 
             />
           </div>
