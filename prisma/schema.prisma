@@ -22,4 +22,5 @@ model Inscripcion {
   telefonoPago    String
   captureUrl      String
   fechaRegistro   DateTime @default(now())
+  dorsal          String?  @unique
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Users, Ticket, Award, LayoutDashboard, ExternalLink } from 'lucide-react';
-import { AdminNavbar } from '../../components/admin/AdminNavbar';
-import { AmbientBackground } from '../../components/AmbientBackground';
-import { Footer } from '../../components/Footer';
+import { Users, Ticket, Award, ExternalLink } from 'lucide-react';
+import { AdminNavbar } from '@/components/admin/AdminNavbar';
+import { AmbientBackground } from '@/components/AmbientBackground';
+import { Footer } from '@/components/Footer';
 
 export default function AdminLayout({
   children,

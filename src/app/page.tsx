@@ -1,9 +1,9 @@
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { RegistrationForm } from "../components/RegistrationForm";
-import { Header } from "../components/Header";
-import { AmbientBackground } from "../components/AmbientBackground";
-import { Footer } from "../components/Footer";
+import { RegistrationForm } from "@/components/RegistrationForm";
+import { Header } from "@/components/Header";
+import { AmbientBackground } from "@/components/AmbientBackground";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (

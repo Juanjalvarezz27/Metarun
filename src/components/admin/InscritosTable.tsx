@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useMemo, useRef } from 'react';
-import { Search, ExternalLink, Filter, MapPin, Map, Navigation, CreditCard, ChevronRight } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { Search, ExternalLink, Filter, MapPin, Map, Navigation, CreditCard, ChevronRight, ChevronLeft } from 'lucide-react';
 
 interface Inscrito {
   id: string;
@@ -46,13 +46,28 @@ export const InscritosTable = ({ data }: { data: Inscrito[] }) => {
     });
   }, [data, searchTerm]);
 
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
+
+  useEffect(() => {
+    setCurrentPage(1); // Reiniciar a página 1 cuando se busca
+  }, [searchTerm]);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredData.slice(start, start + itemsPerPage);
+  }, [filteredData, currentPage]);
+
   const toTitleCase = (str: string) => {
     if (!str) return '';
     return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
   };
 
   return (
-    <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden mt-8">
+    <div className="bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 overflow-hidden mt-8" translate="no">
       
       {/* Buscador de Datos */}
       <div className="p-4 sm:p-5 border-b border-gray-100 bg-white flex justify-start">
@@ -73,8 +88,8 @@ export const InscritosTable = ({ data }: { data: Inscrito[] }) => {
       {/* --- VISTA MÓVIL: LISTA NATIVA ACORDEÓN (Oculto en Desktop) --- */}
       <div className="block md:hidden bg-gray-50/50 p-4">
         <div className="flex flex-col gap-4">
-          {filteredData.length > 0 ? (
-            filteredData.map((inscrito, idx) => {
+          {paginatedData.length > 0 ? (
+            paginatedData.map((inscrito, idx) => {
               const isExpanded = expandedId === inscrito.id;
               const isMounted = mountedId === inscrito.id;
               
@@ -229,8 +244,8 @@ export const InscritosTable = ({ data }: { data: Inscrito[] }) => {
             </tr>
           </thead>
           <tbody className="bg-gray-50/30 divide-y divide-gray-100">
-            {filteredData.length > 0 ? (
-              filteredData.map((inscrito, idx) => {
+            {paginatedData.length > 0 ? (
+              paginatedData.map((inscrito, idx) => {
                 const isExpanded = expandedId === inscrito.id;
                 const isMounted = mountedId === inscrito.id;
                 
@@ -391,12 +406,42 @@ export const InscritosTable = ({ data }: { data: Inscrito[] }) => {
         </table>
       </div>
       
-      {/* Pie de tabla general */}
-      <div className="bg-white px-8 py-5 border-t border-gray-100">
-        <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
-          Mostrando <span className="font-black text-gray-900 mx-1">{filteredData.length}</span> de {data.length} registros totales
-        </p>
-      </div>
+      {/* Pie de tabla general y paginación */}
+      {totalPages > 1 ? (
+        <div className="bg-white px-4 md:px-8 py-5 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+            Mostrando <span className="font-black text-gray-900 mx-1">{(currentPage - 1) * itemsPerPage + 1}</span> a <span className="font-black text-gray-900 mx-1">{Math.min(currentPage * itemsPerPage, filteredData.length)}</span> de <span className="font-black text-gray-900 mx-1">{filteredData.length}</span> resultados
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="p-2 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <div className="flex items-center gap-1">
+              <span className="w-10 h-10 flex items-center justify-center rounded-xl bg-[#ea4a22]/10 text-[#ea4a22] font-black text-sm border border-[#ea4a22]/20">
+                {currentPage}
+              </span>
+              <span className="text-gray-400 font-medium px-2 text-sm">de {totalPages}</span>
+            </div>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="p-2 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-900 disabled:opacity-50 disabled:hover:bg-white transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-white px-8 py-5 border-t border-gray-100">
+          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+            Mostrando <span className="font-black text-gray-900 mx-1">{filteredData.length}</span> de {data.length} registros totales
+          </p>
+        </div>
+      )}
 
     </div>
   );

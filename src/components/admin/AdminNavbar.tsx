@@ -12,7 +12,7 @@ export const AdminNavbar = () => {
 
   const navLinks = [
     { href: '/admin/inscritos', label: 'Inscritos', icon: Users, active: pathname === '/admin/inscritos' || pathname === '/admin' },
-    { href: '#', label: 'Dorsales (Pronto)', icon: Ticket, active: false, disabled: true },
+    { href: '/admin/dorsales', label: 'Dorsales', icon: Ticket, active: pathname === '/admin/dorsales' },
     { href: '#', label: 'Resultados (Pronto)', icon: Award, active: false, disabled: true },
   ];
 
