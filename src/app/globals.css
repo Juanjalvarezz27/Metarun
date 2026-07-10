@@ -77,3 +77,14 @@
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+
+/* === Acordeón Optimizado === */
+@keyframes grid-expand {
+  0% { grid-template-rows: 0fr; opacity: 0; }
+  100% { grid-template-rows: 1fr; opacity: 1; }
+}
+
+.animate-grid-expand {
+  display: grid;
+  animation: grid-expand 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
